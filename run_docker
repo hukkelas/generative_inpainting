@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+import sys
+import os
+import random
+import argparse
+import subprocess
+parser = argparse.ArgumentParser()
+parser.add_argument("gpu_id")
+parser.add_argument("python_args", nargs="+")
+parser.add_argument("--image_name", default="haakohu/tensorflow")
+parser.add_argument("--port", default="")
+args = parser.parse_args()
+gpu_id = args.gpu_id
+python_args = " ".join(args.python_args)
+
+
+def clean_command(cmd):
+    while "  " in cmd:
+        cmd = cmd.replace("  ", " ")
+    return cmd
+
+
+def get_model_name(cmd):
+    try:
+        cmd = cmd.split(" ")
+        config_path = cmd[2]
+        config_name = config_path.split(os.sep)[-1]
+        assert config_name.endswith(".py")
+        return config_name.split(".py")[0]
+    except Exception:
+        return str(random.randint(0, 10000))
+
+
+model_name = get_model_name(python_args)
+print("Model name:", model_name)
+
+filedir = os.path.dirname(os.path.abspath(__file__))
+gpu_name = gpu_id
+if len(gpu_id.split(",")) > 1:
+    gpu_name = "_".join(gpu_id.split(","))
+if "train" in python_args:
+    docker_container = "haakohu_{}_train_GPU{}".format(model_name, gpu_name)
+else:
+    docker_container = "haakohu_{}_other_GPU{}".format(model_name, gpu_name)
+subprocess.run(f"docker rm {docker_container}", stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True)
+command = [
+    "nvidia-docker run",
+    f"--name {docker_container}",
+    "--ipc=host",
+    "-u 1174424",
+    f"-v {filedir}:/workspace",
+    "-v /work/haakohu/deep_privacy/data/:/workspace/data/",
+    f"-e CUDA_VISIBLE_DEVICES={gpu_id}",
+    "-it",
+    f"-p={args.port}" if args.port != "" else "",
+    f"{args.image_name} {python_args}",
+
+
+]
+
+command = " ".join(command)
+print(command)
+os.system(command)
+
