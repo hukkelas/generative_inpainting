@@ -7,7 +7,7 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument("gpu_id")
 parser.add_argument("python_args", nargs="+")
-parser.add_argument("--image_name", default="haakohu/tensorflow")
+parser.add_argument("--image_name", default="haakohu/generative_inpainting")
 parser.add_argument("--port", default="")
 args = parser.parse_args()
 gpu_id = args.gpu_id
@@ -44,13 +44,14 @@ else:
     docker_container = "haakohu_{}_other_GPU{}".format(model_name, gpu_name)
 subprocess.run(f"docker rm {docker_container}", stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True)
 command = [
-    "nvidia-docker run",
+    "docker run",
+#    "--runtime=nvidia",
+    f"--gpus '\"device={gpu_id}\"'",
     f"--name {docker_container}",
     "--ipc=host",
-    "-u 1174424",
+#    "-u 1174424",
     f"-v {filedir}:/workspace",
-    "-v /work/haakohu/deep_privacy/data/:/workspace/data/",
-    f"-e CUDA_VISIBLE_DEVICES={gpu_id}",
+    "-v /work/haakohu:/work/haakohu",
     "-it",
     f"-p={args.port}" if args.port != "" else "",
     f"{args.image_name} {python_args}",

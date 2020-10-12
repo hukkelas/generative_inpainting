@@ -11,7 +11,7 @@ name: places2_gated_conv_v100  # any name
 model_restore: ''  # logs/places2_gated_conv
 dataset: 'celebahq'  # 'tmnist', 'dtd', 'places2', 'celeba', 'imagenet', 'cityscapes'
 random_crop: False  # Set to false when dataset is 'celebahq', meaning only resize the images to img_shapes, instead of crop img_shapes from a larger raw image. This is useful when you train on images with different resolutions like places2. In these cases, please set random_crop to true.
-val: False  # true if you want to view validation results in tensorboard
+val: True  # true if you want to view validation results in tensorboard
 log_dir: logs/full_model_celeba_hq_256
 
 gan: 'sngan'
@@ -31,8 +31,8 @@ val_psteps: 2000
 data_flist:
   # https://github.com/jiahuiyu/progressive_growing_of_gans_tf
   celebahq: [
-    'data/celeba_hq/train_shuffled.flist',
-    'data/celeba_hq/validation_static_view.flist'
+    'train_flist.txt',
+    'val_flist.txt'
   ]
   # http://mmlab.ie.cuhk.edu.hk/projects/celeba.html, please to use random_crop: True
   celeba: [
