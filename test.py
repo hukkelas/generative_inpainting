@@ -26,7 +26,9 @@ if __name__ == "__main__":
 
     model = InpaintCAModel()
     image = cv2.imread(args.image)
-    mask = cv2.imread(args.mask)
+    mask = 255 - cv2.imread(args.mask)
+    print(image.shape)
+    print(mask.shape)
     # mask = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
 
     assert image.shape == mask.shape
@@ -44,6 +46,7 @@ if __name__ == "__main__":
     sess_config = tf.ConfigProto()
     sess_config.gpu_options.allow_growth = True
     with tf.Session(config=sess_config) as sess:
+        print(input_image.shape)
         input_image = tf.constant(input_image, dtype=tf.float32)
         output = model.build_server_graph(FLAGS, input_image)
         output = (output + 1.) * 127.5

@@ -10,7 +10,7 @@ from inpaint_model import InpaintCAModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument("base_dir")
-parser.add_argument('--checkpoint_dir', default='', type=str,
+parser.add_argument('--checkpoint_dir', default="places2_model/", type=str,
                     help='The directory of tensorflow checkpoint.')
 
 
@@ -29,6 +29,7 @@ def center_crop(image):
 if __name__ == "__main__":
     FLAGS = ng.Config('inpaint.yml')
     # ng.get_gpus(1)
+    imsize = 512
     args, unknown = parser.parse_known_args()
     model = InpaintCAModel()
     base_dir = pathlib.Path(args.base_dir)
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     masks_all = [cv2.imread(str(base_dir.joinpath("masks").joinpath(impath.name))) for impath in image_paths]
     imshape = cv2.imread(str(image_paths[0])).shape
     sess_config.gpu_options.allow_growth = True
-    input_image = tf.placeholder(tf.float32, [1, 256, 512, 3])
+    input_image = tf.placeholder(tf.float32, [1, imsize, imsize*2, 3])
     with tf.Session(config=sess_config) as sess:
 #        input_image = tf.constant(input_image, dtype=tf.float32)
         output = model.build_server_graph(FLAGS, input_image)
@@ -61,8 +62,8 @@ if __name__ == "__main__":
             mask = 255 - masks_all[idx_] 
             image = center_crop(image)
             mask = center_crop(mask)
-            image = cv2.resize(image, (256,256))
-            mask = cv2.resize(mask, (256,256))
+            image = cv2.resize(image, (imsize,imsize))
+            mask = cv2.resize(mask, (imsize,imsize))
 
             assert image.shape == mask.shape
 

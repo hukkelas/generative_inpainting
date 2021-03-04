@@ -52,6 +52,7 @@ command = [
 #    "-u 1174424",
     f"-v {filedir}:/workspace",
     "-v /work/haakohu:/work/haakohu",
+    "-v /home/haakohu:/home/haakohu",
     "-it",
     f"-p={args.port}" if args.port != "" else "",
     f"{args.image_name} {python_args}",

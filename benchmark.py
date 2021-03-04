@@ -3,6 +3,7 @@ import pathlib
 import cv2
 import numpy as np
 import tensorflow as tf
+import time
 import neuralgym as ng
 import tqdm
 from inpaint_model import InpaintCAModel
@@ -59,24 +60,29 @@ if __name__ == "__main__":
             image = images_all[idx_]
             mask_path = base_dir.joinpath("masks").joinpath(impath.name)
             mask = 255 - masks_all[idx_] 
-#            image = center_crop(image)
-#            mask = center_crop(mask)
-#            image = cv2.resize(image, (256,256))
-#            mask = cv2.resize(mask, (256,256))
+            image = center_crop(image)
+            mask = center_crop(mask)
+            image = cv2.resize(image, (256,256))
+            mask = cv2.resize(mask, (256,256))
 
             assert image.shape == mask.shape
 
-#            h, w, _ = image.shape
-#            grid = 8
-#            image = image[:h//grid*grid, :w//grid*grid, :]
-#            mask = mask[:h//grid*grid, :w//grid*grid, :]
+            h, w, _ = image.shape
+            grid = 8
+            image = image[:h//grid*grid, :w//grid*grid, :]
+            mask = mask[:h//grid*grid, :w//grid*grid, :]
 
             image = np.expand_dims(image, 0)
             mask = np.expand_dims(mask, 0)
             inp_img = np.concatenate([image, mask], axis=2)
 
             result = sess.run(output, feed_dict={input_image: inp_img})
-            target_path = base_dir.joinpath("gated_conv").joinpath(impath.name)
-            target_path.parent.mkdir(exist_ok=True)
-#            cv2.imwrite(str(target_path), result[0][:, :, ::-1])
-#            print("Saved to:", target_path)
+            break
+        t = time.time()
+        N = 1000
+        for i in tqdm.trange(N):
+            result = sess.run(output, feed_dict={input_image: inp_img})
+        tot = time.time() - t
+        print("FPS:", N/tot)
+        print("ms", tot/N)
+        print()
